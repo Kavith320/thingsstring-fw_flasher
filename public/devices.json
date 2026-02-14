@@ -1,0 +1,30 @@
+[
+    {
+        "id": "aquarium-v1",
+        "name": "Aquarium Controller v1",
+        "chip": "esp8266",
+        "version": "1.0.2",
+        "baud": 460800,
+        "description": "Smart aquarium controller with temperature and light sensors. ESP8266 based.",
+        "files": [
+            {
+                "path": "/firmware/aquarium-v1/firmware.bin",
+                "address": "0x00000"
+            }
+        ]
+    },
+    {
+        "id": "gas-v2",
+        "name": "Gas Leak Sensor v2",
+        "chip": "esp8266",
+        "version": "2.1.0",
+        "baud": 460800,
+        "description": "Industrial gas leak detection system with MQTT alerting. ESP8266 based.",
+        "files": [
+            {
+                "path": "/firmware/gas-v2/firmware.bin",
+                "address": "0x00000"
+            }
+        ]
+    }
+]
