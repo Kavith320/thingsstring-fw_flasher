@@ -3,6 +3,8 @@ import connectDB from '@/lib/mongoose';
 import Device from '@/models/Device';
 import Release from '@/models/Release';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * OTA Check Endpoint
  * Used by devices or external dashboards to check for the latest firmware.
