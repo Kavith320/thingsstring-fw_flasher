@@ -149,7 +149,7 @@ export class ESPFlasher {
 
                 return {
                     address: f.address,
-                    data: f.data, // esptool-js 0.5.x handles Uint8Array directly
+                    data: Array.from(f.data).map(b => String.fromCharCode(b)).join(''),
                 };
             });
 
