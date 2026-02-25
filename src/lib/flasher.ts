@@ -144,34 +144,32 @@ export class ESPFlasher {
                     .map(b => b.toString(16).padStart(2, '0'))
                     .join(' ');
                 
-                this.log(`> File at 0x${f.address.toString(16).toUpperCase()} size: ${f.data.length} bytes`);
-                this.log(`> Header signature: [${first4}]`);
+                this.log(`> Block at 0x${f.address.toString(16).toUpperCase()} | Size: ${f.data.length} bytes | Sig: [${first4}]`);
+
+                // Check for common error signatures (like JSON '{' or text 'M e T')
+                if (f.data[0] === 0x7B || (f.data[0] === 0x6D && f.data[1] === 0x65)) {
+                    this.log('CRITICAL ERROR: The data being flashed looks like TEXT or JSON, not a binary file!');
+                    this.log('Verify your download URL. It might be returning a "Method Not Allowed" or "metadata" JSON.');
+                    throw new Error('Invalid binary format detected (looks like text)');
+                }
 
                 if (f.data[0] !== 0xE9) {
-                    this.log('CRITICAL: This file does NOT start with the ESP magic byte (0xE9). It might be corrupted or a text file.');
-                }
-                
-                // ESP32 Sanity Check: Bootloader should typically be at 0x1000, not 0x0
-                if (this.esploader?.chip.CHIP_NAME === 'ESP32' && f.address === 0) {
-                    this.log('WARNING: Flashing to 0x0000 on ESP32. Bootloader is usually required at 0x1000.');
-                }
-
-                // Convert Uint8Array to Binary String for esptool-js 0.5.x
-                let binaryString = "";
-                for (let i = 0; i < f.data.length; i++) {
-                    binaryString += String.fromCharCode(f.data[i]);
+                    this.log('WARNING: This file does not start with the ESP magic byte (0xE9). It might fail to boot.');
                 }
 
                 return {
                     address: f.address,
-                    data: binaryString,
+                    data: f.data, // Using Uint8Array directly for esptool-js 1.x logic
                 };
             });
 
             await this.esploader.writeFlash({
-                fileArray,
-                flashSize: 'keep',
-                flashMode: 'dio', // Force DIO which is safer for most modules
+                fileArray: fileArray.map(f => ({
+                    address: f.address,
+                    data: Buffer.isBuffer(f.data) ? f.data.toString('binary') : Array.from(f.data).map(b => String.fromCharCode(b)).join('')
+                })),
+                flashSize: '4mb', // Explicitly set to 4MB per user request
+                flashMode: 'dio', // Standard for most modules
                 flashFreq: '40m', // Standard frequency
                 eraseAll: false,
                 compress: true,
