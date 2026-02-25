@@ -140,24 +140,39 @@ export class ESPFlasher {
             this.log(`Preparing to flash ${files.length} files...`);
             
             const fileArray = files.map(f => {
-                this.log(`> File at ${f.address.toString(16).toUpperCase()} (${f.data.length} bytes)`);
+                const first4 = Array.from(f.data.slice(0, 4))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join(' ');
+                
+                this.log(`> File at 0x${f.address.toString(16).toUpperCase()} size: ${f.data.length} bytes`);
+                this.log(`> Header signature: [${first4}]`);
+
+                if (f.data[0] !== 0xE9) {
+                    this.log('CRITICAL: This file does NOT start with the ESP magic byte (0xE9). It might be corrupted or a text file.');
+                }
                 
                 // ESP32 Sanity Check: Bootloader should typically be at 0x1000, not 0x0
                 if (this.esploader?.chip.CHIP_NAME === 'ESP32' && f.address === 0) {
-                    this.log('WARNING: Flashing to 0x0000 on ESP32. Bootloader usually belongs at 0x1000.');
+                    this.log('WARNING: Flashing to 0x0000 on ESP32. Bootloader is usually required at 0x1000.');
+                }
+
+                // Convert Uint8Array to Binary String for esptool-js 0.5.x
+                let binaryString = "";
+                for (let i = 0; i < f.data.length; i++) {
+                    binaryString += String.fromCharCode(f.data[i]);
                 }
 
                 return {
                     address: f.address,
-                    data: Array.from(f.data).map(b => String.fromCharCode(b)).join(''),
+                    data: binaryString,
                 };
             });
 
             await this.esploader.writeFlash({
                 fileArray,
                 flashSize: 'keep',
-                flashMode: 'keep',
-                flashFreq: 'keep',
+                flashMode: 'dio', // Force DIO which is safer for most modules
+                flashFreq: '40m', // Standard frequency
                 eraseAll: false,
                 compress: true,
                 reportProgress: (fileIndex: number, written: number, total: number) => {
