@@ -137,13 +137,24 @@ export class ESPFlasher {
         try {
             await this.stopReading();
             this.callbacks.onStateChange('flashing');
-            this.log('Starting flash process...');
+            this.log(`Preparing to flash ${files.length} files...`);
+            
+            const fileArray = files.map(f => {
+                this.log(`> File at ${f.address.toString(16).toUpperCase()} (${f.data.length} bytes)`);
+                
+                // ESP32 Sanity Check: Bootloader should typically be at 0x1000, not 0x0
+                if (this.esploader?.chip.CHIP_NAME === 'ESP32' && f.address === 0) {
+                    this.log('WARNING: Flashing to 0x0000 on ESP32. Bootloader usually belongs at 0x1000.');
+                }
+
+                return {
+                    address: f.address,
+                    data: f.data, // esptool-js 0.5.x handles Uint8Array directly
+                };
+            });
 
             await this.esploader.writeFlash({
-                fileArray: files.map(f => ({
-                    address: f.address,
-                    data: Buffer.from(f.data).toString('binary'),
-                })),
+                fileArray,
                 flashSize: 'keep',
                 flashMode: 'keep',
                 flashFreq: 'keep',
