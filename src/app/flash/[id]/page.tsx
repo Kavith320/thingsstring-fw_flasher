@@ -48,7 +48,7 @@ export default function FlashPage() {
     const [baudRate, setBaudRate] = useState<number>(460800);
     const [flashMode, setFlashMode] = useState<string>('dio');
     const [flashFreq, setFlashFreq] = useState<string>('40m');
-    const [flashSize, setFlashSize] = useState<string>('4mb');
+    const [flashSize, setFlashSize] = useState<string>('detect');
     const [eraseAll, setEraseAll] = useState<boolean>(false);
     const [state, setState] = useState<'idle' | 'connecting' | 'connected' | 'flashing' | 'done' | 'error'>('idle');
     const [logs, setLogs] = useState<string[]>([]);
@@ -311,7 +311,8 @@ export default function FlashPage() {
                                     onChange={(e) => setFlashSize(e.target.value)}
                                     disabled={state !== 'idle' && state !== 'error'}
                                 >
-                                    <option value="detected">Auto Detect</option>
+                                    <option value="detect">Auto Detect (Recommended)</option>
+                                    <option value="keep">Keep Existing</option>
                                     <option value="1mb">1MB</option>
                                     <option value="2mb">2MB</option>
                                     <option value="4mb">4MB</option>

@@ -142,7 +142,8 @@ export class ESPFlasher {
         try {
             await this.stopReading();
             this.callbacks.onStateChange('flashing');
-            this.log(`Preparing to flash ${files.length} files...`);
+            this.log(`Placing ${files.length} blocks into flash...`);
+            this.log(`Settings: [Mode: ${options.flashMode}] [Freq: ${options.flashFreq}] [Size: ${options.flashSize}] [Erase: ${options.eraseAll}]`);
 
             const fileArray = files.map(f => {
                 const first4 = Array.from(f.data.slice(0, 4))
@@ -160,11 +161,12 @@ export class ESPFlasher {
 
                 if (f.data[0] !== 0xE9) {
                     this.log('WARNING: This file does not start with the ESP magic byte (0xE9). It might fail to boot.');
+                    this.log('Valid ESP32 binaries MUST start with 0xE9. Your file starts with ' + (f.data[0]?.toString(16) || '??'));
                 }
 
                 return {
                     address: f.address,
-                    data: f.data, // Using Uint8Array directly for esptool-js 1.x logic
+                    data: f.data,
                 };
             });
 
@@ -173,9 +175,9 @@ export class ESPFlasher {
                     address: f.address,
                     data: Buffer.isBuffer(f.data) ? f.data.toString('binary') : Array.from(f.data).map(b => String.fromCharCode(b)).join('')
                 })),
-                flashSize: options.flashSize,
-                flashMode: options.flashMode,
-                flashFreq: options.flashFreq,
+                flashSize: options.flashSize.toLowerCase(),
+                flashMode: options.flashMode.toLowerCase(),
+                flashFreq: options.flashFreq.toLowerCase(),
                 eraseAll: options.eraseAll,
                 compress: true,
                 reportProgress: (fileIndex: number, written: number, total: number) => {
