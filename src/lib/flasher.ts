@@ -173,7 +173,7 @@ export class ESPFlasher {
             await this.esploader.writeFlash({
                 fileArray: fileArray.map(f => ({
                     address: f.address,
-                    data: Buffer.isBuffer(f.data) ? f.data.toString('binary') : Array.from(f.data).map(b => String.fromCharCode(b)).join('')
+                    data: f.data as any // Cast to any because the library supports Uint8Array but types might be outdated
                 })),
                 flashSize: options.flashSize.toLowerCase(),
                 flashMode: options.flashMode.toLowerCase(),
