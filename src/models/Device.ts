@@ -26,7 +26,7 @@ const DeviceSchema: Schema = new Schema({
     files: [
         {
             path: { type: String, required: true },
-            address: { type: String, required: true, default: '0x00000' },
+            address: { type: String, required: true, default: '0x0' },
         },
     ],
     createdAt: { type: Date, default: Date.now },

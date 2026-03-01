@@ -398,7 +398,7 @@ export default function AdminEditDevicePage() {
                                                             const newFiles = res.map(file => ({
                                                                 path: file.ufsUrl || file.url,
                                                                 name: file.name,
-                                                                address: '0x00000'
+                                                                address: '0x0'
                                                             }));
                                                             setFirmwareFiles(prev => [...prev, ...newFiles]);
                                                         }

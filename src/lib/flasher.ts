@@ -138,12 +138,12 @@ export class ESPFlasher {
             await this.stopReading();
             this.callbacks.onStateChange('flashing');
             this.log(`Preparing to flash ${files.length} files...`);
-            
+
             const fileArray = files.map(f => {
                 const first4 = Array.from(f.data.slice(0, 4))
                     .map(b => b.toString(16).padStart(2, '0'))
                     .join(' ');
-                
+
                 this.log(`> Block at 0x${f.address.toString(16).toUpperCase()} | Size: ${f.data.length} bytes | Sig: [${first4}]`);
 
                 // Check for common error signatures (like JSON '{' or text 'M e T')
@@ -168,9 +168,9 @@ export class ESPFlasher {
                     address: f.address,
                     data: Buffer.isBuffer(f.data) ? f.data.toString('binary') : Array.from(f.data).map(b => String.fromCharCode(b)).join('')
                 })),
-                flashSize: '4mb', // Explicitly set to 4MB per user request
-                flashMode: 'dio', // Standard for most modules
-                flashFreq: '40m', // Standard frequency
+                flashSize: '4mb', // Set to 4MB per user request
+                flashMode: 'dio', // Set to dio per user request
+                flashFreq: '40m', // Set to 40MHz per user request
                 eraseAll: false,
                 compress: true,
                 reportProgress: (fileIndex: number, written: number, total: number) => {

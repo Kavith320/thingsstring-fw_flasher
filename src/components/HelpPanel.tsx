@@ -53,7 +53,7 @@ export const HelpPanel: React.FC = () => {
 
             <div className="mt-8 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
                 <p className="text-[10px] text-slate-500 text-center uppercase tracking-widest font-mono">
-                    Flash Offset: 0x00000 | Target: ESP8266
+                    Flash Offset: 0x0 | Target: ESP32
                 </p>
             </div>
         </div>
