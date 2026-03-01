@@ -131,7 +131,12 @@ export class ESPFlasher {
         }
     }
 
-    async flash(files: DeviceFile[], baudRate: number) {
+    async flash(files: DeviceFile[], baudRate: number, options: {
+        flashSize: string;
+        flashMode: string;
+        flashFreq: string;
+        eraseAll: boolean;
+    }) {
         if (!this.esploader) throw new Error('Not connected');
 
         try {
@@ -168,10 +173,10 @@ export class ESPFlasher {
                     address: f.address,
                     data: Buffer.isBuffer(f.data) ? f.data.toString('binary') : Array.from(f.data).map(b => String.fromCharCode(b)).join('')
                 })),
-                flashSize: '4mb', // Set to 4MB per user request
-                flashMode: 'dio', // Set to dio per user request
-                flashFreq: '40m', // Set to 40MHz per user request
-                eraseAll: false,
+                flashSize: options.flashSize,
+                flashMode: options.flashMode,
+                flashFreq: options.flashFreq,
+                eraseAll: options.eraseAll,
                 compress: true,
                 reportProgress: (fileIndex: number, written: number, total: number) => {
                     const progress = Math.round((written / total) * 100);

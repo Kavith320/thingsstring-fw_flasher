@@ -45,6 +45,10 @@ export default function FlashPage() {
     const [device, setDevice] = useState<Device | null>(null);
     const [loading, setLoading] = useState(true);
     const [baudRate, setBaudRate] = useState<number>(460800);
+    const [flashMode, setFlashMode] = useState<string>('dio');
+    const [flashFreq, setFlashFreq] = useState<string>('40m');
+    const [flashSize, setFlashSize] = useState<string>('4mb');
+    const [eraseAll, setEraseAll] = useState<boolean>(false);
     const [state, setState] = useState<'idle' | 'connecting' | 'connected' | 'flashing' | 'done' | 'error'>('idle');
     const [logs, setLogs] = useState<string[]>([]);
     const [serialData, setSerialData] = useState<string>('');
@@ -158,7 +162,12 @@ export default function FlashPage() {
             }
 
             setOverallProgress(0);
-            await flasherRef.current.flash(dataToFlash, baudRate);
+            await flasherRef.current.flash(dataToFlash, baudRate, {
+                flashMode,
+                flashFreq,
+                flashSize,
+                eraseAll
+            });
         } catch (err: any) {
             setLogs(prev => [...prev, `Process Error: ${err.message}`]);
             setState('error');
@@ -234,14 +243,14 @@ export default function FlashPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                            <div className="space-y-4">
-                                <label className="flex items-center text-sm font-semibold text-slate-300">
-                                    <Settings className="w-4 h-4 mr-2 text-primary-500" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-10">
+                            <div className="space-y-3">
+                                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                    <Settings className="w-3 h-3 mr-2 text-primary-500" />
                                     Baud Rate
                                 </label>
                                 <select
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 outline-none focus:border-primary-500 transition-colors"
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary-500 transition-colors"
                                     value={baudRate}
                                     onChange={(e) => setBaudRate(Number(e.target.value))}
                                     disabled={state !== 'idle' && state !== 'error'}
@@ -252,25 +261,108 @@ export default function FlashPage() {
                                     <option value={460800}>460800 (Very Fast)</option>
                                     <option value={921600}>921600 (Extreme)</option>
                                 </select>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Device Default: {device.baud}</p>
                             </div>
 
-                            <div className="flex flex-col justify-end space-y-3">
+                            <div className="space-y-3">
+                                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                    <Cpu className="w-3 h-3 mr-2 text-primary-500" />
+                                    Flash Mode
+                                </label>
+                                <select
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary-500 transition-colors"
+                                    value={flashMode}
+                                    onChange={(e) => setFlashMode(e.target.value)}
+                                    disabled={state !== 'idle' && state !== 'error'}
+                                >
+                                    <option value="qio">QIO</option>
+                                    <option value="qout">QOUT</option>
+                                    <option value="dio">DIO</option>
+                                    <option value="dout">DOUT</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                    <Zap className="w-3 h-3 mr-2 text-primary-500" />
+                                    Flash Speed
+                                </label>
+                                <select
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary-500 transition-colors"
+                                    value={flashFreq}
+                                    onChange={(e) => setFlashFreq(e.target.value)}
+                                    disabled={state !== 'idle' && state !== 'error'}
+                                >
+                                    <option value="40m">40MHz</option>
+                                    <option value="26m">26MHz</option>
+                                    <option value="20m">20MHz</option>
+                                    <option value="80m">80MHz</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                    <Layers className="w-3 h-3 mr-2 text-primary-500" />
+                                    Flash Size
+                                </label>
+                                <select
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary-500 transition-colors"
+                                    value={flashSize}
+                                    onChange={(e) => setFlashSize(e.target.value)}
+                                    disabled={state !== 'idle' && state !== 'error'}
+                                >
+                                    <option value="detected">Auto Detect</option>
+                                    <option value="1mb">1MB</option>
+                                    <option value="2mb">2MB</option>
+                                    <option value="4mb">4MB</option>
+                                    <option value="8mb">8MB</option>
+                                    <option value="16mb">16MB</option>
+                                </select>
+                            </div>
+
+                            <div className="md:col-span-2 flex items-center justify-between p-4 bg-slate-950/50 rounded-xl border border-slate-800">
+                                <div className="flex items-center space-x-3">
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                                        eraseAll ? "bg-red-500/10 text-red-500" : "bg-slate-800 text-slate-500"
+                                    )}>
+                                        <Trash2 className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">Erase Entire Flash</h4>
+                                        <p className="text-[10px] text-slate-500">Perform full chip erase before writing</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setEraseAll(!eraseAll)}
+                                    disabled={state !== 'idle' && state !== 'error'}
+                                    className={cn(
+                                        "w-12 h-6 rounded-full relative transition-colors duration-300 focus:outline-none",
+                                        eraseAll ? "bg-red-500" : "bg-slate-800"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300",
+                                        eraseAll ? "left-7" : "left-1"
+                                    )} />
+                                </button>
+                            </div>
+
+                            <div className="md:col-span-2 flex flex-col justify-end space-y-3 pt-4">
                                 {state === 'idle' || state === 'error' ? (
                                     <button
                                         onClick={handleConnect}
-                                        className="flex items-center justify-center space-x-2 w-full py-3.5 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-primary-500/20"
+                                        className="flex items-center justify-center space-x-2 w-full py-4 bg-primary-600 hover:bg-primary-500 text-white font-black rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-primary-500/20 uppercase tracking-widest text-[11px]"
                                     >
                                         <Power className="w-5 h-5" />
-                                        <span>CONNECT DEVICE</span>
+                                        <span>INITIALIZE SERIAL LINK</span>
                                     </button>
                                 ) : (
                                     <button
                                         onClick={handleDisconnect}
-                                        className="flex items-center justify-center space-x-2 w-full py-3.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold rounded-xl transition-all active:scale-[0.98]"
+                                        className="flex items-center justify-center space-x-2 w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-black rounded-xl transition-all active:scale-[0.98] uppercase tracking-widest text-[11px]"
                                     >
                                         <Power className="w-5 h-5" />
-                                        <span>DISCONNECT</span>
+                                        <span>TERMINATE CONNECTION</span>
                                     </button>
                                 )}
                             </div>
@@ -281,17 +373,10 @@ export default function FlashPage() {
                                 <button
                                     onClick={handleFlash}
                                     disabled={state !== 'connected' && state !== 'done' && state !== 'error'}
-                                    className="flex-1 flex items-center justify-center space-x-2 py-4 bg-white text-slate-950 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-white font-black rounded-xl transition-all shadow-xl active:scale-[0.98]"
+                                    className="flex-1 flex items-center justify-center space-x-3 py-5 bg-white text-slate-950 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-white font-black rounded-2xl transition-all shadow-xl active:scale-[0.98] uppercase tracking-[0.2em] text-xs"
                                 >
-                                    <Zap className="w-6 h-6 fill-current" />
-                                    <span>FLASH FIRMWARE</span>
-                                </button>
-                                <button
-                                    disabled={state !== 'connected'}
-                                    className="flex items-center justify-center px-6 py-4 bg-slate-800 text-slate-400 hover:text-red-400 hover:bg-red-400/10 disabled:opacity-30 rounded-xl transition-all"
-                                    title="Erase then Flash (Not implemented in MVP)"
-                                >
-                                    <Trash2 className="w-6 h-6" />
+                                    <Zap className="w-5 h-5 fill-current" />
+                                    <span>EXECUTE COMMAND</span>
                                 </button>
                             </div>
 
