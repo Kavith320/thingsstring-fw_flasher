@@ -25,7 +25,8 @@ import {
     CheckCircle2,
     RefreshCw,
     Cpu,
-    Terminal
+    Terminal,
+    Layers
 } from 'lucide-react';
 import Link from 'next/link';
 
